@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+	
+	
+	<!--어노테이션 활성화 시킨다는 의미  -->
+	<tx:annotation-driven transaction-manager="txManager"/>
+	<bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="txManager">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	<!-- 핵심로직  -->
+	<!-- 공통 로직 , 객체생성  -->
+	<!-- <bean class="com.choa.aspect.CardCheck" id="cardCheck"/> -->
+	
+	<!-- AOP 설정  -->
+	<!-- <aop:config>
+	전체적인 설정은 그룹단위로 
+		<aop:aspect id="cardAspect" ref="cardCheck">
+		'..' 이 뜻한느 것 : 하위에 모든 디럭테리를 포함 
+		'*()' 하위의 모든 메서드를 포함 
+		(..) 모든 매개변수 포함
+		<aop:pointcut expression="execution(* com.choa.aspect..Transport.*(..))" id="trans"/>
+		<aop:around method="check" pointcut-ref="trans"/>
+		</aop:aspect>
+		
+		<aop:aspect id="cardReseve" ref="cardCheck">
+			<aop:pointcut expression="execution(* com.choa.aspect.Trip.*(..))" id="reserve"/>
+			<aop:before method="reservation" pointcut-ref="reserve"/>		
+		</aop:aspect>	
+	</aop:config> -->
+	
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"  id="propertyPlaceholderConfigurer">
+		<property name="locations">
+			<value>classpath:myBatis/myBatis.properties</value><!-- 프로퍼티 파일의 경로를 집어넣어준다. -->		
+		</property>
+	</bean>
+	
+		<!-- DB연결  // connection을 받아주는 역할-->
+	<bean class="org.springframework.jdbc.datasource.DriverManagerDataSource" id="dataSource">
+		<property name="username" value="${jdbc.user}"/>
+		<property name="password" value="${jdbc.pw}"/>
+		<property name="url" value="${jdbc.url}"/>
+		<property name="driverClassName" value="${jdbc.driver}"/>
+	</bean>
+		
+	<bean class="org.mybatis.spring.SqlSessionFactoryBean" id="sqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="mapperLocations" value="classpath:mappers/**/*Mapper.xml"/>
+		<property name="configLocation" value="classpath:myBatis/myBatis-config.xml"/>
+	</bean>			
+	 
+	 <!-- mybatis 와 연결  -->
+	<bean class="org.mybatis.spring.SqlSessionTemplate" >
+		<constructor-arg name="sqlSessionFactory" ref="sqlSessionFactoryBean"/>
+	</bean>	
+	
+	<!-- 트랜잭션 관리자 개념 // 공통로직에 해당하는 객체  -->
+	<!-- <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="txManager"> -->
+	<!-- 	<property name="dataSource" ref="dataSource"/> 데이타소스를 트랜잭션 매니저와 연결 시켜준다. 
+	</bean>
+	
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="*" rollback-for="Exception"/> 모든 메서드에 해당하며 각 메서드가 익셉션이 발생한다면 롤백한다는 의미  
+		</tx:attributes>
+	</tx:advice>
+	
+	<aop:config>
+		<aop:pointcut expression="execution(* com.choa.table..TableService.*(..))" id="requiredTx"/>
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="requiredTx"/>  외부 어드바이스 불러오기 
+	</aop:config> -->
+
+
+	<!-- 파일업로드를 위한 객체생성  -->
+	<bean class="org.springframework.web.multipart.commons.CommonsMultipartResolver" id="multipartResolver">
+		<property name="defaultEncoding" value="UTF-8"/>
+	</bean>
+
+	
+	
+			
+</beans>
